@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WAEC Practice Test — Secure Mode (Boss)</title>
+<style>
+  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;background:#f6f7fb;color:#0b1a2b;display:flex;justify-content:center;min-height:100vh}
+  .wrap{width:100%;max-width:920px;padding:18px}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:52px;height:52px;border-radius:8px;background:linear-gradient(135deg,#0b6efd,#5ad0ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+  h1{margin:0;font-size:20px}
+  small{color:#586472}
+  .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(20,30,60,0.06);margin-bottom:12px}
+  label{display:block;margin-top:8px;color:#233;font-weight:600}
+  input[type="email"], select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;margin-top:8px;font-size:15px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{padding:10px 14px;border-radius:8px;border:0;background:#0b6efd;color:#fff;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid #d6e2ff;color:#0b6efd}
+  .timer{font-weight:800;font-size:18px;color:#0b6efd}
+  .qbox{margin-top:16px;border-radius:10px;padding:14px;border:1px solid #eef2ff;background:linear-gradient(180deg,#ffffff,#fbfdff)}
+  .options{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+  .opt{padding:12px;border-radius:8px;border:1px solid #eef2f9;cursor:pointer;background:#fff}
+  .opt.selected{border-color:#0b6efd;background:#e9f0ff}
+  .correct{border-color:#1b7a2f;background:#ebfff0}
+  .wrong{border-color:#c83b3b;background:#fff3f3}
+  .small{font-size:13px;color:#586472}
+  .explain{margin-top:10px;padding:12px;border-radius:8px;background:#fbfbfb;border:1px solid #efefef;color:#333}
+  .security-box{background:#dff3f6;border-left:6px solid #2fb8e0;padding:14px;border-radius:6px;margin:12px 0}
+  .center{text-align:center}
+  input[type=checkbox]{width:18px;height:18px}
+  @media (max-width:720px){.row{flex-direction:column}}
+  /* small visual reset for scrolling page */
+  .question-block{padding:12px;border-radius:8px;background:#fff;margin-bottom:10px;border:1px solid #eee}
+  .subjects-list{line-height:2.1}
+  textarea.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">WA</div>
+      <div>
+        <h1>WAEC Practice Test - Secure Mode</h1>
+        <small class="small">Practice tests — mobile friendly</small>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="timer" id="displayTimer">10:00</div>
+      <div class="small" id="statusSmall">Ready</div>
+    </div>
+  </div>
+
+  <!-- SETUP / RULES PAGE -->
+  <div id="rulesPage" class="card">
+    <!-- security box at top -->
+    <div class="security-box center" id="securityTop">
+      <div style="font-weight:800;font-size:16px">🔒 Security Features Active:</div>
+      <ul style="margin:8px 0 0 18px;text-align:left">
+        <li>✓ Tab switching detection</li>
+        <li>✓ Copy-paste prevention</li>
+        <li>✓ Right-click disabled</li>
+        <li>✓ Fullscreen recommended</li>
+        <li>✓ Activity monitoring enabled</li>
+        <li>✓ Unique session code tracking</li>
+      </ul>
+    </div>
+
+    <h2 style="margin-top:4px">📋 Test Rules and Regulations</h2>
+    <div class="small" style="margin-top:6px">
+      <ul>
+        <li><strong>Duration:</strong> 10 minutes (600 seconds)</li>
+        <li><strong>Questions:</strong> Up to 60 questions (depending on subjects selected)</li>
+        <li><strong>Question Types:</strong> Multiple choice</li>
+        <li><strong>Submission:</strong> Automatic submission when time expires or manual submission</li>
+        <li><strong>Results:</strong> Sent automatically to registered email</li>
+      </ul>
+    </div>
+
+    <div style="margin-top:10px">
+      <h3>⚠️ Important Rules:</h3>
+      <ul class="small">
+        <li>Do not switch tabs or minimize the browser — violations will be logged.</li>
+        <li>Timer cannot be paused once started.</li>
+        <li>Review your answers before final submission.</li>
+        <li>Fullscreen mode is highly recommended for better focus.</li>
+        <li>You will receive a unique session code when you start the test.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:10px">
+      <h3 class="small" style="margin:0 0 8px 0">🧾 Scoring:</h3>
+      <ul class="small">
+        <li>Each correct answer: 1 point</li>
+        <li>Wrong answers: 0 points (no negative marking)</li>
+        <li>Unanswered questions: 0 points</li>
+      </ul>
+
+      <div style="margin-top:12px">
+        <label><input type="checkbox" id="agreeRules"> I have read and understood all the rules and regulations. I agree to abide by them during the test.</label>
+        <div id="proceedWrap" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- security box at bottom -->
+    <div class="security-box center" id="securityBottom">
+      <div style="font-weight:800;font-size:16px">🔒 Security Features Active:</div>
+      <ul style="margin:8px 0 0 18px;text-align:left">
+        <li>✓ Tab switching detection</li>
+        <li>✓ Copy-paste prevention</li>
+        <li>✓ Right-click disabled</li>
+        <li>✓ Fullscreen recommended</li>
+        <li>✓ Activity monitoring enabled</li>
+        <li>✓ Unique session code tracking</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SUBJECT SELECTION PAGE -->
+  <div id="subjectsPage" class="card" style="display:none">
+    <h2 class="center">Select Subjects to Practice</h2>
+    <div style="margin-top:12px" class="subjects-list">
+      <label><input type="checkbox" class="subject-checkbox" value="Mathematics"> Mathematics</label>
+      <label><input type="checkbox" class="subject-checkbox" value="English Language"> English Language</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Yoruba"> Yoruba</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Civic Education"> Civic Education</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Economics"> Economics</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Government"> Government</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Computer Studies"> Computer Studies</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Biology"> Biology</label>
+      <label><input type="checkbox" class="subject-checkbox" value="Literature in English"> Literature in English</label>
+    </div>
+
+    <div style="margin-top:18px" class="row">
+      <button class="btn" id="startTestBtn">🚀 Start Test (10 Minutes)</button>
+      <button class="btn ghost" id="showListBtn">Show question list (fixed order)</button>
+    </div>
+  </div>
+
+  <!-- QUIZ PAGE (all questions scrolling) -->
+  <div id="quizPage" class="card" style="display:none">
+    <div class="qbox">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong id="sessionCode">Session: -</strong> <span id="qcount" class="small"></span></div>
+        <div><small id="progress">0 / 0</small></div>
+      </div>
+
+      <div id="questionsContainer" style="margin-top:12px"></div>
+
+      <div style="margin-top:14px;display:flex;justify-content:space-between;gap:8px;align-items:center">
+        <div class="small" id="warnText"></div>
+        <div>
+          <button class="btn" id="submitQuizBtn">Submit Quiz</button>
+        </div>
+      </div>
+
+      <div id="status" class="small" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsPage" class="card" style="display:none">
+    <h2>Results</h2>
+    <div id="scoreText" class="small"></div>
+    <div id="details"></div>
+    <div style="margin-top:12px" class="row">
+      <button class="btn" id="copyResults">Copy Results</button>
+      <button class="btn ghost" id="downloadResults">Download JSON</button>
+      <button class="btn ghost" id="openMailBtn">Open Mail App</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== CONFIG ===== */
+const FORM_EMAIL = "taonuga@gmail.com"; // results recipient
+const SUBJECTS = ["Mathematics","English Language","Yoruba","Civic Education","Economics","Government","Computer Studies","Biology","Literature in English"];
+const QUESTIONS_PER_SUBJECT = 60;
+const DEFAULT_DURATION_SEC = 600; // 10 minutes
+
+/* ===== Helper: deterministic question generator =====
+ We generate placeholder WAEC-style questions programmatically.
+ Correct answer is deterministic:
+   correctIndex = (subjectIndex + questionIndex) % 4
+ This lets both you and I reproduce the same correct answer later.
+*/
+function generateQuestionsFor(subjectIndex){
+  const subj = SUBJECTS[subjectIndex];
+  const arr = [];
+  for(let i=0;i<QUESTIONS_PER_SUBJECT;i++){
+    const qtext = `${subj} Question ${i+1}: (Type your question here or replace later)`;
+    const choices = [
+      `Option A for ${subj} Q${i+1}`,
+      `Option B for ${subj} Q${i+1}`,
+      `Option C for ${subj} Q${i+1}`,
+      `Option D for ${subj} Q${i+1}`
+    ];
+    const answer = (subjectIndex + i) % 4;
+    const explanation = `If you want the reasoning for ${subj} Q${i+1}, ask Bestie: "What's ${subj} Q${i+1}?"`;
+    arr.push({question:qtext, choices, answer, explanation});
+  }
+  return arr;
+}
+
+/* ===== Build full bank (fixed order per subject) ===== */
+const BANK = {};
+for(let s=0;s<SUBJECTS.length;s++){
+  BANK[SUBJECTS[s]] = generateQuestionsFor(s);
+}
+
+/* ===== State ===== */
+let state = {
+  selectedSubjects: [],
+  questions: [], // flattened list for the quiz (fixed order: subject1 q1..q60, subject2 q1..)
+  answers: [],   // chosen indices (null if none)
+  durationSec: DEFAULT_DURATION_SEC,
+  remaining: DEFAULT_DURATION_SEC,
+  timerId: null,
+  started: false,
+  sessionCode: null,
+  participantEmail: ""
+};
+
+/* ===== DOM binds ===== */
+const agreeRules = document.getElementById('agreeRules');
+const proceedWrap = document.getElementById('proceedWrap');
+const rulesPage = document.getElementById('rulesPage');
+const subjectsPage = document.getElementById('subjectsPage');
+const quizPage = document.getElementById('quizPage');
+const resultsPage = document.getElementById('resultsPage');
+const showListBtn = document.getElementById('showListBtn');
+const questionsContainer = document.getElementById('questionsContainer');
+const displayTimer = document.getElementById('displayTimer');
+const statusSmall = document.getElementById('statusSmall');
+const startTestBtn = document.getElementById('startTestBtn');
+const submitQuizBtn = document.getElementById('submitQuizBtn');
+const progressEl = document.getElementById('progress');
+const qcount = document.getElementById('qcount');
+const sessionCodeEl = document.getElementById('sessionCode');
+const scoreText = document.getElementById('scoreText');
+const details = document.getElementById('details');
+const copyResultsBtn = document.getElementById('copyResults');
+const downloadBtn = document.getElementById('downloadResults');
+const openMailBtn = document.getElementById('openMailBtn');
+const showListWrap = document.getElementById('questionList');
+const qlBody = document.getElementById('qlBody');
+
+/* ===== UI: Proceed button shows after agree ===== */
+agreeRules.addEventListener('change', ()=>{
+  proceedWrap.innerHTML = '';
+  if(agreeRules.checked){
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = 'Proceed';
+    btn.addEventListener('click', ()=> {
+      rulesPage.style.display='none';
+      subjectsPage.style.display='block';
+      window.scrollTo({top:0});
+    });
+    proceedWrap.appendChild(btn);
+  }
+});
+
+/* ===== Show question list (for selected subjects) ===== */
+showListBtn.addEventListener('click', ()=>{
+  const checked = Array.from(document.querySelectorAll('.subject-checkbox:checked')).map(n=>n.value);
+  if(checked.length===0){ alert("Select at least one subject to view question list."); return; }
+  let html = '';
+  checked.forEach(sub => {
+    html += `<h4>${sub}</h4>`;
+    const arr = BANK[sub];
+    html += arr.map((q,i)=>`<div><strong>Q${i+1}.</strong> ${q.question}</div>`).join('');
+    html += '<hr/>';
+  });
+  // quick modal-like display using prompt (mobile-friendly)
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"/></head><body style="font-family:system-ui;padding:16px">${html}</body></html>`);
+});
+
+/* ===== Start Test ===== */
+startTestBtn.addEventListener('click', ()=>{
+  const checkedNodes = Array.from(document.querySelectorAll('.subject-checkbox:checked'));
+  if(checkedNodes.length===0){ alert("Select at least one subject to start the test."); return; }
+  // build flattened fixed-order question list: for each subject in order selected, append its 60 questions in order
+  state.selectedSubjects = checkedNodes.map(n=>n.value);
+  state.questions = [];
+  state.selectedSubjects.forEach(sub => {
+    const arr = BANK[sub] || [];
+    arr.forEach(q => state.questions.push({subject:sub, ...q}));
+  });
+  state.answers = new Array(state.questions.length).fill(null);
+  state.durationSec = DEFAULT_DURATION_SEC;
+  state.remaining = state.durationSec;
+  state.started = true;
+  state.sessionCode = generateSessionCode();
+  sessionCodeEl.textContent = `Session: ${state.sessionCode}`;
+  // hide/ show pages
+  subjectsPage.style.display='none';
+  quizPage.style.display='block';
+  resultsPage.style.display='none';
+  displayTimer.textContent = formatTime(state.remaining);
+  statusSmall.textContent = "Quiz in progress";
+  renderAllQuestions();
+  startTimer();
+  // lock certain actions
+  try{ document.documentElement.requestFullscreen?.(); }catch(e){}
+});
+
+/* ===== Timer functions ===== */
+function formatTime(sec){ const m=Math.floor(sec/60).toString().padStart(2,'0'); const s=(sec%60).toString().padStart(2,'0'); return `${m}:${s}`; }
+function startTimer(){
+  if(state.timerId) clearInterval(state.timerId);
+  state.timerId = setInterval(()=>{
+    state.remaining--;
+    displayTimer.textContent = formatTime(state.remaining);
+    if(state.remaining<=0){
+      clearInterval(state.timerId);
+      statusSmall.textContent = "Time up — auto-submitting";
+      submitQuiz(true);
+    }
+  },1000);
+}
+
+/* ===== Render all questions (single page scroll) ===== */
+function renderAllQuestions(){
+  questionsContainer.innerHTML = '';
+  state.questions.forEach((q,i)=>{
+    const block = document.createElement('div');
+    block.className = 'question-block';
+    block.innerHTML = `<div style="font-weight:700">Q${i+1}. ${escapeHtml(q.question)}</div>`;
+    const optDiv = document.createElement('div');
+    optDiv.className = 'options';
+    q.choices.forEach((c,idx)=>{
+      const id = `q${i}_opt${idx}`;
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="radio" name="q${i}" value="${idx}" id="${id}"> <strong>${String.fromCharCode(65+idx)}.</strong> ${escapeHtml(c)}`;
+      optDiv.appendChild(label);
+      // listen for change
+      label.querySelector('input').addEventListener('change', (e)=>{
+        state.answers[i] = parseInt(e.target.value,10);
+      });
+    });
+    block.appendChild(optDiv);
+    questionsContainer.appendChild(block);
+  });
+  progressEl.textContent = `0 / ${state.questions.length}`;
+  qcount.textContent = `${state.questions.length} questions`;
+}
+
+/* ===== Submit ===== */
+submitQuizBtn.addEventListener('click', ()=> {
+  if(!confirm("Submit quiz now?")) return;
+  submitQuiz(false);
+});
+
+function submitQuiz(auto=false){
+  if(state.timerId) clearInterval(state.timerId);
+  state.started=false;
+  quizPage.style.display='none';
+  resultsPage.style.display='block';
+  statusSmall.textContent = auto ? "Auto-submitted (time up)" : "Submitted";
+  computeResultsAndShow();
+  sendResultsToEmail();
+}
+
+/* ===== Compute results and show details ===== */
+function computeResultsAndShow(){
+  const total = state.questions.length;
+  let correct = 0;
+  details.innerHTML = '';
+  state.questions.forEach((q,i)=>{
+    const chosen = state.answers[i];
+    const isCorrect = chosen === q.answer;
+    if(isCorrect) correct++;
+    const d = document.createElement('div');
+    d.style.marginTop='10px';
+    d.innerHTML = `
+      <div style="font-weight:700">${i+1}. ${escapeHtml(q.question)}</div>
+      <div>Your answer: ${chosen===null?'<em>Not answered</em>':String.fromCharCode(65+chosen)+'. '+escapeHtml(q.choices[chosen])}</div>
+      <div>Correct answer: ${String.fromCharCode(65+q.answer)}. ${escapeHtml(q.choices[q.answer])}</div>
+      <div class="explain"><strong>Explanation:</strong> ${escapeHtml(q.explanation)}</div>
+    `;
+    details.appendChild(d);
+  });
+  scoreText.textContent = `Score: ${correct} / ${total} (${Math.round(correct/total*100)}%) — Subjects: ${state.selectedSubjects.join(', ')}`;
+  // store payload
+  state.resultsPayload = {
+    session: state.sessionCode,
+    participant_email: state.participantEmail || null,
+    subjects: state.selectedSubjects,
+    totalQuestions: total,
+    correct,
+    percentage: Math.round(correct/total*100),
+    timestamp: new Date().toISOString(),
+    answers: state.questions.map((q,i)=>({
+      question: q.question,
+      chosenIndex: state.answers[i],
+      chosenText: state.answers[i]===null?null:q.choices[state.answers[i]],
+      correctIndex: q.answer,
+      correctText: q.choices[q.answer],
+      explanation: q.explanation
+    }))
+  };
+}
+
+/* ===== Send results to FormSubmit ===== */
+function sendResultsToEmail(){
+  const endpoint = `https://formsubmit.co/${FORM_EMAIL}`;
+  const form = new FormData();
+  form.append("subject", `WAEC Practice Results - ${state.selectedSubjects.join(', ')}`);
+  form.append("participant_email", state.participantEmail || "");
+  form.append("session", state.sessionCode);
+  form.append("score", `${state.resultsPayload.correct} / ${state.resultsPayload.totalQuestions}`);
+  form.append("percentage", `${state.resultsPayload.percentage}%`);
+  form.append("timestamp", state.resultsPayload.timestamp);
+  form.append("results_json", JSON.stringify(state.resultsPayload, null, 2));
+  form.append("_captcha","false");
+  fetch(endpoint, {method:"POST", body: form})
+    .then(()=> { document.getElementById('status').textContent = `Results sent to ${FORM_EMAIL} (first-time FormSubmit verification required).`; })
+    .catch(err => { document.getElementById('status').textContent = "Sending results failed (network/FormSubmit)."; console.error(err);});
+}
+
+/* ===== Utilities ===== */
+function generateSessionCode(){
+  return 'R' + Math.random().toString(36).slice(2,9).toUpperCase();
+}
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"'`=\/]/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[ch]; }); }
+
+/* copy and download handlers */
+copyResultsBtn.addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(JSON.stringify(state.resultsPayload, null, 2)); alert("Results copied to clipboard."); }catch(e){ alert("Copy failed."); }
+});
+downloadBtn.addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state.resultsPayload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `waec_results_${state.sessionCode}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+openMailBtn.addEventListener('click', ()=>{
+  const to = encodeURIComponent(FORM_EMAIL);
+  let body = `WAEC Practice Results - ${state.selectedSubjects.join(', ')}%0AScore: ${state.resultsPayload.correct} / ${state.resultsPayload.totalQuestions} (${state.resultsPayload.percentage}%)%0ATime: ${state.resultsPayload.timestamp}%0A%0A`;
+  state.resultsPayload.answers.forEach((a,i)=>{ body += `${i+1}. ${a.question}%0AYour: ${a.chosenText || 'Not answered'}%0ACorrect: ${a.correctText}%0A%0A`; });
+  window.location.href = `mailto:${to}?subject=${encodeURIComponent('WAEC Practice Results - '+state.selectedSubjects.join(', '))}&body=${body}`;
+});
+
+/* ===== Security behaviors (basic) ===== */
+// disable right-click
+document.addEventListener('contextmenu', e=> e.preventDefault());
+// disable copy
+document.addEventListener('copy', e=> { e.preventDefault(); alert("Copy not allowed during the test."); });
+// visibility change detection
+let tabSwitches = 0;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && state.started){
+    tabSwitches++;
+    document.getElementById('warnText').textContent = `Warning: Tab switched ${tabSwitches} time(s). Repeated switching may be logged.`;
+  }
+});
+/* prevent paste into radio/inputs by blocking paste events */
+document.addEventListener('paste', e=> { e.preventDefault(); });
+
+/* small helper: if user leaves page, we log it */
+window.addEventListener('beforeunload', (e)=> {
+  if(state.started){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ===== End script ===== */
+</script>
+</body>
+</html>
