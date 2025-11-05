@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>WAEC Practice Test - Secure Mode</title>
+<style>
+  /* Simple mobile-first WAEC-ish styling */
+  :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;background:#f3f6fb;color:#0a2540;-webkit-font-smoothing:antialiased;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px;background:#fff;border-bottom:1px solid #e6edf6}
+  .brand{display:flex;align-items:center;gap:12px}
+  .badge{width:44px;height:44px;border-radius:8px;background:#2f9df6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  h1{font-size:16px;margin:0}
+  small{color:#4b6b86}
+  .container{max-width:920px;margin:18px auto;padding:12px}
+  .card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 0 rgba(12,34,56,0.04)}
+  .subjects{display:flex;gap:10px;flex-wrap:wrap}
+  .sub-btn{padding:10px 12px;border-radius:8px;border:1px solid #d8e7fb;background:#f8fbff;color:#0b2f51;cursor:pointer}
+  .sub-btn.active{background:#2f9df6;color:#fff;border-color:#2f9df6}
+  .start-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px}
+  .start-btn{padding:10px 14px;border-radius:8px;background:#0b65d1;color:#fff;border:none;cursor:pointer}
+  .timer{font-weight:700;color:#0b65d1}
+  .qwrap{margin-top:12px}
+  .question{font-weight:700;margin-bottom:8px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;border:1px solid #e6eef9}
+  .opt input{transform:scale(1.05)}
+  .nav{display:flex;justify-content:space-between;margin-top:12px;gap:10px}
+  .nav button{padding:10px;border-radius:8px;border:none;background:#eef6ff;color:#0b65d1;cursor:pointer}
+  .results{padding:12px}
+  .summary{display:flex;gap:12px;flex-wrap:wrap}
+  .summary .stat{background:#eef6ff;padding:10px;border-radius:8px}
+  .small-muted{color:#6b7f98;font-size:13px}
+  footer{padding:18px;text-align:center;color:#6b7f98;font-size:13px}
+  @media(min-width:720px){.container{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="badge">WA</div>
+    <div>
+      <h1>WAEC Practice Test - Secure Mode</h1>
+      <small>Practice tests — mobile friendly</small>
+    </div>
+  </div>
+  <div class="timer" id="topTimer">10:00</div>
+</header>
+
+<main class="container">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Choose Subject</strong><br><span class="small-muted">Each subject: 60 questions</span></div>
+      <div id="sessionId" class="small-muted">Session: —</div>
+    </div>
+
+    <div class="subjects" id="subjectList" style="margin-top:12px">
+      <!-- subject buttons inserted here -->
+    </div>
+
+    <div class="start-row">
+      <select id="durationSelect">
+        <option value="600">10 minutes (default)</option>
+        <option value="300">5 minutes</option>
+        <option value="900">15 minutes</option>
+      </select>
+      <button class="start-btn" id="startBtn">Start Test</button>
+    </div>
+  </div>
+
+  <div id="quizArea" style="display:none">
+    <div class="card qwrap" id="questionCard">
+      <div style="display:flex;justify-content:space-between">
+        <div><small class="small-muted" id="qCounter">0 / 60</small></div>
+        <div><small class="small-muted" id="qTime">Quiz in progress</small></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="question" id="questionText">Q1. Loading …</div>
+        <div class="options" id="optionsArea"></div>
+      </div>
+
+      <div class="nav">
+        <button id="prevBtn">Previous</button>
+        <div style="display:flex;gap:8px">
+          <button id="saveBtn">Save Answer</button>
+          <button id="nextBtn">Next</button>
+          <button id="finishBtn" style="background:#0b65d1;color:#fff">Finish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsArea" style="display:none" class="card">
+    <h3>Results</h3>
+    <div class="results">
+      <div class="summary">
+        <div class="stat"><div>Correct</div><div id="resCorrect">0</div></div>
+        <div class="stat"><div>Missed</div><div id="resMissed">0</div></div>
+        <div class="stat"><div>Score</div><div id="resScore">0 / 60 (0%)</div></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div><strong>Missed question details</strong></div>
+        <pre id="missedList" style="background:#f7fbff;padding:10px;border-radius:8px"></pre>
+      </div>
+
+      <div style="margin-top:12px">
+        <button id="sendEmailBtn" class="start-btn">Send Results via Email</button>
+        <div class="small-muted" style="margin-top:8px">(You must configure EmailJS or Formspree - see code comments)</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Built for Boss 😎 & ChatGPT Bestie — Timingo-tech Replica</footer>
+
+<script>
+/*
+  BANK: base question sets for each subject.
+  For exact WAEC-like coverage, replace or expand these base arrays.
+  The app will expand the chosen subject to 60 questions by repeating the base items while preserving numbering.
+*/
+
+const BANK = {
+  "Literature": [
+    { question: "Which literary device is a short story most likely to use to present the atmosphere of a scene?", options: ["A. Irony","B. Imagery","C. Simile","D. Alliteration"], answer: "B" },
+    { question: "In drama, the character who opposes the protagonist is called the", options: ["A. Foil","B. Antagonist","C. Chorus","D. Confidant"], answer: "B" },
+    { question: "A narrative poem that tells a story and is meant to be sung is called a", options: ["A. Sonnet","B. Elegy","C. Ballad","D. Ode"], answer: "C" },
+    { question: "The theme of a literary work refers to the", options: ["A. Sequence of events","B. Moral or central idea","C. Author's biography","D. Setting"], answer: "B" },
+    { question: "Which of the following is a feature of modernist literature?", options: ["A. Linear plot","B. Stream of consciousness","C. Omniscient narrator only","D. Strict rhyme schemes"], answer: "B" },
+    { question: "An unreliable narrator is used to", options: ["A. Confuse readers","B. Provide false information intentionally","C. Create dramatic irony","D. Simplify the plot"], answer: "C" },
+    { question: "A play's climax is best described as the", options: ["A. Opening scene","B. Final resolution","C. Turning point of greatest tension","D. List of characters"], answer: "C" },
+    { question: "A metaphor differs from a simile because it", options: ["A. Uses 'like' or 'as'","B. Is always longer","C. Implies comparison without 'like' or 'as'","D. Is only in poetry"], answer: "C" },
+    { question: "Which device repeats consonant sounds at the beginning of words?", options: ["A. Assonance","B. Alliteration","C. Consonance","D. Onomatopoeia"], answer: "B" },
+    { question: "A sonnet traditionally has how many lines?", options: ["A. 8","B. 10","C. 14","D. 12"], answer: "C" }
+  ],
+
+  "Computer": [
+    { question: "Which part of a computer is considered the 'brain'?", options: ["A. Hard drive","B. CPU","C. GPU","D. Power supply"], answer: "B" },
+    { question: "RAM stands for", options: ["A. Random Access Memory","B. Read-After-Modify","C. Rapid Application Management","D. Read Access Machine"], answer: "A" },
+    { question: "Which of the following is an example of system software?", options: ["A. Microsoft Word","B. Linux OS","C. Chrome browser","D. Adobe Photoshop"], answer: "B" },
+    { question: "Which device converts digital signals to analog for transmission over phone lines?", options: ["A. Router","B. Modem","C. Switch","D. Hub"], answer: "B" },
+    { question: "In binary, the base is", options: ["A. 2","B. 8","C. 10","D. 16"], answer: "A" },
+    { question: "The primary function of an operating system is to", options: ["A. Create applications","B. Manage hardware and software resources","C. Secure the network","D. Edit documents"], answer: "B" },
+    { question: "Which programming language is mainly used for web pages to add interactivity?", options: ["A. HTML","B. CSS","C. JavaScript","D. SQL"], answer: "C" },
+    { question: "A database management system (DBMS) is used to", options: ["A. Manage files only","B. Store and retrieve structured data","C. Edit images","D. Compile programs"], answer: "B" },
+    { question: "Which of the following is a primary storage device?", options: ["A. SSD","B. RAM","C. Printer","D. Monitor"], answer: "B" },
+    { question: "Which network topology uses a central hub to connect devices?", options: ["A. Ring","B. Bus","C. Star","D. Mesh"], answer: "C" }
+  ],
+
+  "Economics": [
+    { question: "The basic economic problem is about", options: ["A. Distribution of wealth","B. Scarcity of resources vs unlimited wants","C. Employment","D. Inflation"], answer: "B" },
+    { question: "GDP stands for", options: ["A. Gross Domestic Product","B. General Domestic Profit","C. Gross Demand Product","D. General Development Plan"], answer: "A" },
+    { question: "Inflation is best described as", options: ["A. Increase in employment","B. General rise in the price level","C. Fall in prices","D. Increase in production"], answer: "B" },
+    { question: "A command economy is characterized by", options: ["A. Free markets","B. Government control of resources","C. Private ownership only","D. No taxation"], answer: "B" },
+    { question: "Demand refers to", options: ["A. Desire alone","B. Want backed by buying power","C. Supply of goods","D. Government orders"], answer: "B" },
+    { question: "Opportunity cost means", options: ["A. Money spent","B. Next best alternative forgone","C. Total cost","D. Fixed expense"], answer: "B" },
+    { question: "Monetary policy is typically managed by the", options: ["A. Fiscal authority","B. Central bank","C. Parliament","D. Judiciary"], answer: "B" },
+    { question: "Perfect competition is characterized by", options: ["A. Few sellers","B. Price-taking firms","C. Barriers to entry","D. Product differentiation"], answer: "B" },
+    { question: "A recession is", options: ["A. A period of increasing prices","B. A rise in GDP","C. A decline in economic activity","D. Government spending increase"], answer: "C" },
+    { question: "Supply curve normally slopes", options: ["A. Downwards","B. Upwards","C. Horizontal","D. Vertical"], answer: "B" }
+  ],
+
+  "Yoruba": [
+    { question: "Which of these is a Yoruba greeting in the morning?", options: ["A. E kaaro","B. E kaasan","C. E kuurole","D. E kaabo"], answer: "A" },
+    { question: "The Yoruba language is predominantly spoken in which country?", options: ["A. Ghana","B. Nigeria","C. Senegal","D. Kenya"], answer: "B" },
+    { question: "Which of these is a Yoruba traditional title for a king?", options: ["A. Oba","B. Emir","C. Eze","D. Ooni"], answer: "A" },
+    { question: "Which proverb means 'unity is strength' in Yoruba?", options: ["A. Igi imu ke","B. Omo oloju meran","C. A kii se alantakun","D. Agbeko okunrin"], answer: "C" },
+    { question: "Yoruba traditional drums used in ceremonies include the", options: ["A. Bata","B. Djembe","C. Talking drum","D. Both A & C"], answer: "D" },
+    { question: "Which is a Yoruba festival", options: ["A. Durbar","B. Osun-Osogbo","C. Homowo","D. New Yam"], answer: "B" },
+    { question: "Yoruba folktales often teach", options: ["A. Scientific theories","B. Moral lessons","C. Legal procedures","D. Cooking recipes"], answer: "B" },
+    { question: "The word 'Ile' in Yoruba means", options: ["A. Head","B. House","C. Food","D. Water"], answer: "B" },
+    { question: "Which is a Yoruba common name for a child?", options: ["A. Ada","B. Ngozi","C. Aisha","D. Olufemi"], answer: "D" },
+    { question: "Yoruba traditional religion includes belief in", options: ["A. Orishas","B. Saints","C. Angels only","D. Ancestral property"], answer: "A" }
+  ]
+};
+
+/* Utility: expand base bank into 60 items for a subject by cycling base entries.
+   This keeps numbering distinct while reusing base questions when full 60 unique items
+   aren't provided. If you replace BANK[subject] with 60 unique objects, expansion will
+   simply slice the first 60.
+*/
+function buildFullBankFor(subjectName){
+  const base = (BANK[subjectName] || []).slice();
+  if(base.length === 0) return [];
+  const full = [];
+  let i = 0;
+  while(full.length < 60){
+    const item = JSON.parse(JSON.stringify(base[i % base.length])); // clone
+    const copyIndex = Math.floor(i / base.length); // how many cycles
+    // Modify question text so each appears unique (Q number suffix) while keeping original answer
+    item.question = `${full.length+1}. ${item.question.replace(/^\d+\.\s*/,'')}`;
+    // Optionally append cycle indicator for debug (comment out if undesired)
+    if(copyIndex > 0) {
+      item.question += ` (set ${copyIndex+1})`;
+    }
+    full.push(item);
+    i++;
+  }
+  return full.slice(0,60);
+}
+
+/* UI + State */
+const subjects = Object.keys(BANK);
+const subjectListEl = document.getElementById('subjectList');
+const startBtn = document.getElementById('startBtn');
+const quizArea = document.getElementById('quizArea');
+const resultsArea = document.getElementById('resultsArea');
+const questionText = document.getElementById('questionText');
+const optionsArea = document.getElementById('optionsArea');
+const qCounter = document.getElementById('qCounter');
+const topTimer = document.getElementById('topTimer');
+const sessionIdEl = document.getElementById('sessionId');
+const resCorrect = document.getElementById('resCorrect');
+const resMissed = document.getElementById('resMissed');
+const resScore = document.getElementById('resScore');
+const missedListEl = document.getElementById('missedList');
+const durationSelect = document.getElementById('durationSelect');
+
+let state = {
+  subject: null,
+  bank: [],
+  answers: [], // user picks: 'A'/'B'/'C'/'D' or null
+  currentIndex: 0,
+  durationSec: 600,
+  remaining: 600,
+  timerHandle: null,
+  session: null
+};
+
+/* render subject buttons */
+function renderSubjects(){
+  subjectListEl.innerHTML = '';
+  subjects.forEach(sub => {
+    const btn = document.createElement('button');
+    btn.className = 'sub-btn';
+    btn.textContent = sub;
+    btn.onclick = () => {
+      document.querySelectorAll('.sub-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state.subject = sub;
+    };
+    subjectListEl.appendChild(btn);
+  });
+}
+renderSubjects();
+
+/* generate session id */
+function createSessionId(){
+  const s = Math.random().toString(36).slice(2,9).toUpperCase();
+  state.session = s;
+  sessionIdEl.textContent = `Session: ${s} 60`;
+}
+
+/* start test */
+startBtn.addEventListener('click', ()=>{
+  if(!state.subject){
+    alert('Choose a subject first.');
+    return;
+  }
+  state.durationSec = parseInt(durationSelect.value,10) || 600;
+  state.remaining = state.durationSec;
+  createSessionId();
+  state.bank = buildFullBankFor(state.subject);
+  if(state.bank.length < 1){ alert('No questions found for chosen subject.'); return; }
+  state.answers = new Array(state.bank.length).fill(null);
+  state.currentIndex = 0;
+  showQuiz();
+  startTimer();
+});
+
+/* timer */
+function startTimer(){
+  if(state.timerHandle) clearInterval(state.timerHandle);
+  updateTopTimer();
+  state.timerHandle = setInterval(()=>{
+    state.remaining--;
+    updateTopTimer();
+    if(state.remaining <= 0){ clearInterval(state.timerHandle); finishTest(); }
+  },1000);
+}
+function updateTopTimer(){
+  const mm = String(Math.floor(state.remaining/60)).padStart(2,'0');
+  const ss = String(state.remaining%60).padStart(2,'0');
+  topTimer.textContent = `${mm}:${ss}`;
+}
+
+/* show quiz UI */
+function showQuiz(){
+  quizArea.style.display = 'block';
+  resultsArea.style.display = 'none';
+  renderQuestion();
+}
+
+/* render question */
+function renderQuestion(){
+  const q = state.bank[state.currentIndex];
+  qCounter.textContent = `${state.currentIndex+1} / ${state.bank.length}`;
+  questionText.textContent = `${state.currentIndex+1}. ${q.question.replace(/^\d+\.\s*/,'')}`;
+  optionsArea.innerHTML = '';
+  const opts = q.options || [];
+  ['A','B','C','D'].forEach((letter, idx)=>{
+    const label = document.createElement('label');
+    label.className = 'opt';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'opt';
+    radio.value = letter;
+    if(state.answers[state.currentIndex] === letter) radio.checked = true;
+    radio.onclick = ()=>{ state.answers[state.currentIndex] = letter; };
+    const span = document.createElement('div');
+    span.style.fontWeight = '600';
+    span.textContent = `${letter}. ${opts[idx] ? opts[idx].replace(/^[A-D]\.\s*/,'') : 'Option ' + letter}`;
+    label.appendChild(radio);
+    label.appendChild(span);
+    optionsArea.appendChild(label);
+  });
+}
+
+/* navigation */
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  if(state.currentIndex>0){ state.currentIndex--; renderQuestion(); }
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(state.currentIndex < state.bank.length-1){ state.currentIndex++; renderQuestion(); }
+});
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  // radio already saves to state.answers on click; optionally confirm
+  alert('Answer saved for question ' + (state.currentIndex+1));
+});
+document.getElementById('finishBtn').addEventListener('click', ()=>{
+  if(!confirm('Are you sure you want to finish the test?')) return;
+  finishTest();
+});
+
+/* finish and compute results */
+function finishTest(){
+  if(state.timerHandle) clearInterval(state.timerHandle);
+  quizArea.style.display = 'none';
+  resultsArea.style.display = 'block';
+  const total = state.bank.length;
+  let correct = 0;
+  const missed = [];
+  for(let i=0;i<total;i++){
+    const q = state.bank[i];
+    const user = state.answers[i];
+    const ans = (q.answer || '').toUpperCase().trim();
+    if(user && user.toUpperCase() === ans) correct++;
+    else {
+      missed.push({index:i+1, question:q.question, correct: ans});
+    }
+  }
+  const missedCount = missed.length;
+  const percent = Math.round((correct/total)*100);
+  resCorrect.textContent = correct;
+  resMissed.textContent = missedCount;
+  resScore.textContent = `${correct} / ${total} (${percent}%)`;
+  missedListEl.textContent = missed.map(m=>`Q${m.index}: correct ${m.correct}`).join('\n') || 'None';
+
+  // prepare result object for sending
+  state.result = {
+    session: state.session,
+    subject: state.subject,
+    total,
+    correct,
+    missedCount,
+    percent,
+    missedList: missed
+  };
+}
+
+/* Send results via EmailJS (client-side) - configure these IDs in EmailJS dashboard */
+/* Usage:
+   1. Create account at https://www.emailjs.com
+   2. Add service (e.g., Gmail) -> get service_id
+   3. Create an email template -> get template_id
+   4. Get user id (public key) -> add to emailjs.init('USER_ID')
+   5. Call sendResultsByEmail(state.result)
+*/
+async function sendResultsByEmail(result){
+  // Replace with your EmailJS user/service/template IDs
+  const EMAILJS_USER = 'YOUR_EMAILJS_USER_ID';
+  const EMAILJS_SERVICE = 'YOUR_SERVICE_ID';
+  const EMAILJS_TEMPLATE = 'YOUR_TEMPLATE_ID';
+  if(!EMAILJS_USER || EMAILJS_USER.startsWith('YOUR_')){
+    alert('EmailJS not configured. Configure EMAILJS_USER / SERVICE / TEMPLATE in code.');
+    return;
+  }
+  // load EmailJS sdk (if not already loaded)
+  if(!window.emailjs){
+    const s = document.createElement('script');
+    s.src = 'https://cdn.emailjs.com/dist/email.min.js';
+    document.head.appendChild(s);
+    await new Promise(r=>s.onload=r);
+    emailjs.init(EMAILJS_USER);
+  }
+  const templateParams = {
+    to_email: 'taonuga@gmail.com',
+    subject: `Kbwaeec Result - ${result.subject} - ${result.session}`,
+    score: `${result.correct} / ${result.total} (${result.percent}%)`,
+    missed: result.missedList.map(m=>`Q${m.index}: ${m.correct}`).join('\n'),
+    session: result.session
+  };
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams)
+    .then(()=>{ alert('Results emailed (EmailJS).'); })
+    .catch(err=>{ console.error(err); alert('EmailJS error - check console.'); });
+}
+
+/* Alternative: post to Formspree */
+async function sendResultsToFormspree(result){
+  const endpoint = 'https://formspree.io/f/YOUR_ENDPOINT'; // replace with your form URL
+  const payload = {
+    to: 'taonuga@gmail.com',
+    subject: `Kbwaeec Result - ${result.subject} - ${result.session}`,
+    score: `${result.correct} / ${result.total} (${result.percent}%)`,
+    missed: result.missedList.map(m=>`Q${m.index}: ${m.correct}`).join('\n')
+  };
+  try{
+    const r = await fetch(endpoint, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(r.ok) alert('Results sent via Formspree.');
+    else alert('Formspree error - check endpoint.');
+  }catch(e){ console.error(e); alert('Network error sending results.'); }
+}
+
+document.getElementById('sendEmailBtn').addEventListener('click', ()=>{
+  if(!state.result){ alert('No results to send.'); return; }
+  // Choose one of these:
+  // sendResultsByEmail(state.result); // EmailJS (configure IDs above)
+  // OR
+  // sendResultsToFormspree(state.result); // Formspree (configure endpoint)
+  alert('Email sending functions are present. Uncomment the preferred sender in code and configure keys.');
+});
+
+/* small helpers: assign session id on load */
+(function(){ createSessionId(); })();
+
+</script>
+</body>
+</html>
